@@ -1,31 +1,26 @@
 const jwt = require('jsonwebtoken');
 const Driver = require('../models/Driver');
 
-const protect = async (req, res, next) => {
-    let token;
+async function protectDriver(req, res, next) {
+  const authHeader = req.headers.authorization;
 
-    if (
-        req.headers.authorization &&
-        req.headers.authorization.startsWith('Bearer')
-    ) {
-        try {
-            token = req.headers.authorization.split(' ')[1];
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ message: 'No token, authorization denied' });
+  }
 
-            req.driver = await Driver.findById(decoded.id).select('-password');
+  const token = authHeader.split(' ')[1];
 
-            if (!req.driver) {
-                return res.status(401).json({ message: 'Not authorized, driver not found.' });
-            }
-
-            next();
-        } catch (error) {
-            console.error('Driver token verification failed:', error);
-            return res.status(401).json({ message: 'Not authorized, token failed.' });
-        }
-    } else {
-        return res.status(401).json({ message: 'Not authorized, no token' });
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const driver = await Driver.findById(decoded.id).select('-password');
+    if (!driver) {
+      return res.status(401).json({ message: 'Driver not found' });
     }
-};
+    req.driver = driver;
+    next();
+  } catch (err) {
+    return res.status(401).json({ message: 'Token is not valid' });
+  }
+}
 
-module.exports = { protect };
+module.exports = { protectDriver };

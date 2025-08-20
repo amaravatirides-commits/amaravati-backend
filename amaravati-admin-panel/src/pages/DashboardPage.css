@@ -1,0 +1,41 @@
+.dashboard-container {
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+.dashboard-container h1 {
+  margin-bottom: 20px;
+}
+
+.dashboard-container button {
+  margin-bottom: 20px;
+  padding: 8px 16px;
+  background-color: #1d4ed8; /* blue */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.dashboard-container button:hover {
+  background-color: #2563eb; /* darker blue */
+}
+
+.dashboard-container ul {
+  list-style: none;
+  padding: 0;
+}
+
+.dashboard-container ul li {
+  margin: 10px 0;
+}
+
+.dashboard-container ul li a {
+  text-decoration: none;
+  color: #1d4ed8;
+  font-weight: bold;
+}
+
+.dashboard-container ul li a:hover {
+  text-decoration: underline;
+}

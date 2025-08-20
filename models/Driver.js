@@ -1,15 +1,17 @@
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
 
-const DriverSchema = new mongoose.Schema({
+const driverSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
+    trim: true,
   },
-  mobile: {
+  email: {
     type: String,
     required: true,
     unique: true,
+    lowercase: true,
+    trim: true,
   },
   password: {
     type: String,
@@ -17,47 +19,17 @@ const DriverSchema = new mongoose.Schema({
   },
   vehicleNumber: {
     type: String,
-    required: false,
+    required: true,
+    trim: true,
   },
-  vehicleType: {
+  phoneNumber: {
     type: String,
-    required: false,
+    trim: true,
   },
-  profileImage: {
-    type: String, // URL or base64 string (optional)
-    required: false,
-  },
-  isActive: {
+  isAvailable: {
     type: Boolean,
-    default: true, // Used for soft delete/deactivation
-  },
-  location: {
-    type: {
-      type: String,
-      enum: ['Point'],
-      default: 'Point',
-    },
-    coordinates: {
-      type: [Number], // [longitude, latitude]
-      default: [0, 0],
-    },
+    default: false,
   },
 }, { timestamps: true });
 
-// 🔄 Enable geospatial index
-DriverSchema.index({ location: '2dsphere' });
-
-// 🔐 Hash password before saving
-DriverSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
-  next();
-});
-
-// 🔐 Method to compare password
-DriverSchema.methods.comparePassword = async function (enteredPassword) {
-  return await bcrypt.compare(enteredPassword, this.password);
-};
-
-module.exports = mongoose.model('Driver', DriverSchema);
+module.exports = mongoose.model('Driver', driverSchema);

@@ -1,3 +1,4 @@
+// createAdmin.js
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const bcrypt = require('bcryptjs');
@@ -15,20 +16,20 @@ async function createOrResetAdmin() {
     await mongoose.connect(process.env.MONGO_URI);
     console.log('✅ Connected to MongoDB');
 
-    const username = 'admin123';
+    const email = 'admin@example.com'; // Use email as unique identifier
     const plainPassword = 'admin123';
 
-    const existing = await Admin.findOne({ username });
+    const existing = await Admin.findOne({ email });
     const hashedPassword = await bcrypt.hash(plainPassword, 10);
 
     if (existing) {
       existing.password = hashedPassword;
       await existing.save();
-      console.log(`🔁 Password reset for existing admin "${username}"`);
+      console.log(`🔁 Password reset for existing admin "${email}"`);
     } else {
-      const newAdmin = new Admin({ username, password: hashedPassword });
+      const newAdmin = new Admin({ email, password: hashedPassword });
       await newAdmin.save();
-      console.log(`🎉 New admin created: ${username}`);
+      console.log(`🎉 New admin created: ${email}`);
     }
 
     await mongoose.disconnect();

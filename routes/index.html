@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amaravati Admin Panel</title>
+    <!-- Tailwind CSS CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React and Babel for in-browser JSX -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // This is a self-contained HTML file with a simple React application.
+        
+        const { useState } = React;
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+
+        // --- Pages and Components ---
+        const LoginPage = ({ onLogin }) => {
+            const [username, setUsername] = useState('');
+            const [password, setPassword] = useState('');
+            const [message, setMessage] = useState('');
+
+            const handleLogin = (e) => {
+                e.preventDefault();
+                if (!username || !password) {
+                    setMessage("Please enter both username and password.");
+                    return;
+                }
+                // Mock authentication: any non-empty username/password works.
+                onLogin(username);
+            };
+
+            return (
+                <div className="flex items-center justify-center min-h-screen p-4 sm:p-6 lg:p-8">
+                    <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-6 sm:p-8 lg:p-10">
+                        <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">Amaravati Admin Login</h2>
+                        <form onSubmit={handleLogin} className="space-y-4">
+                            <div>
+                                <label className="block text-gray-700 text-sm font-semibold mb-2">Username</label>
+                                <input
+                                    type="text"
+                                    value={username}
+                                    onChange={(e) => setUsername(e.target.value)}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
+                                    placeholder="Enter your username"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-gray-700 text-sm font-semibold mb-2">Password</label>
+                                <input
+                                    type="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
+                                    placeholder="Enter your password"
+                                />
+                            </div>
+                            <button
+                                type="submit"
+                                className="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                            >
+                                Log In
+                            </button>
+                        </form>
+                        {message && <p className="text-center mt-4 text-red-500">{message}</p>}
+                    </div>
+                </div>
+            );
+        };
+
+        const DashboardPage = ({ user, onLogout }) => {
+            return (
+                <div className="flex flex-col items-center justify-center min-h-screen p-4 sm:p-6 lg:p-8">
+                    <div className="w-full max-w-2xl bg-white rounded-xl shadow-lg p-6 sm:p-8 lg:p-10">
+                        <h2 className="text-2xl font-bold text-center mb-4 text-gray-800">Welcome, {user}!</h2>
+                        <p className="text-center text-gray-600 mb-6">This is your secure admin dashboard.</p>
+                        <button
+                            onClick={onLogout}
+                            className="block mx-auto bg-red-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-red-700 transition duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                        >
+                            Log Out
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- Main App Component ---
+        const App = () => {
+            const [user, setUser] = useState(null);
+
+            const handleLogin = (username) => {
+                setUser(username);
+            };
+
+            const handleLogout = () => {
+                setUser(null);
+            };
+
+            // Conditionally render the LoginPage or DashboardPage based on user state
+            return user 
+                ? <DashboardPage user={user} onLogout={handleLogout} /> 
+                : <LoginPage onLogin={handleLogin} />;
+        };
+
+        root.render(<App />);
+    </script>
+</body>
+</html>
