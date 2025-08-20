@@ -1,4 +1,4 @@
-const User = require('../models/user');
+const User = require('../models/User'); // Ensure the filename matches exactly
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
@@ -29,11 +29,7 @@ exports.registerUser = async (req, res) => {
     });
 
     // Generate token
-    const token = jwt.sign(
-      { id: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
-    );
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
     res.status(201).json({
       user: { id: user._id, name: user.name, email: user.email },
@@ -68,11 +64,7 @@ exports.loginUser = async (req, res) => {
     }
 
     // Generate token
-    const token = jwt.sign(
-      { id: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
-    );
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
     res.json({
       user: { id: user._id, name: user.name, email: user.email },
