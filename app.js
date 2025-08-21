@@ -17,9 +17,13 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Health check route
+// Health check routes
 app.get('/', (req, res) => {
   res.send('Amaravati Backend OK');
+});
+
+app.get('/healthz', (req, res) => {
+  res.status(200).json({ status: 'ok' });
 });
 
 // Routes
