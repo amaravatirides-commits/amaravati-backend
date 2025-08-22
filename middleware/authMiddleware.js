@@ -1,7 +1,7 @@
 // middleware/authMiddleware.js
 const jwt = require('jsonwebtoken');
-const User = require('../models/User'); // Corrected import path
-const Driver = require('../models/driver');
+const User = require('../models/User'); 
+const Driver = require('../models/Driver'); // Corrected import path
 const Admin = require('../models/admin');
 
 const authMiddleware = async (req, res, next) => {
