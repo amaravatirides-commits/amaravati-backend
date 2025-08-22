@@ -1,4 +1,4 @@
-const Driver = require('../models/driver');
+const Driver = require('../models/Driver');  // 👈 Case fixed
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
