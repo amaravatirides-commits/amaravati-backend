@@ -1,4 +1,5 @@
-const Driver = require('../models/Driver');  // 👈 Case fixed
+// controllers/driverController.js
+const Driver = require('../models/Driver'); // ✅ Ensure filename matches exactly
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
@@ -8,17 +9,20 @@ exports.registerDriver = async (req, res) => {
     const { name, email, password, vehicleNumber } = req.body;
 
     if (!name || !email || !password || !vehicleNumber) {
-      return res.status(400).json({ message: 'Please provide all required fields' });
+      return res.status(400).json({ message: 'Please provide name, email, password, and vehicle number' });
     }
 
+    // Check if driver already exists
     const driverExists = await Driver.findOne({ email });
     if (driverExists) {
       return res.status(400).json({ message: 'Driver already exists' });
     }
 
+    // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    // Create driver
     const driver = await Driver.create({
       name,
       email,
@@ -27,6 +31,7 @@ exports.registerDriver = async (req, res) => {
       isAvailable: false,
     });
 
+    // Generate token
     const token = jwt.sign({ id: driver._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
     res.status(201).json({
@@ -40,12 +45,12 @@ exports.registerDriver = async (req, res) => {
       token
     });
   } catch (error) {
-    console.error('Error in registerDriver:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Error in registerDriver:', error.message, error.stack);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 
-// Driver login
+// Login driver
 exports.loginDriver = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -54,16 +59,19 @@ exports.loginDriver = async (req, res) => {
       return res.status(400).json({ message: 'Please provide email and password' });
     }
 
+    // Find driver
     const driver = await Driver.findOne({ email });
     if (!driver) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
+    // Compare password
     const isMatch = await bcrypt.compare(password, driver.password);
     if (!isMatch) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
+    // Generate token
     const token = jwt.sign({ id: driver._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
     res.json({
@@ -77,8 +85,8 @@ exports.loginDriver = async (req, res) => {
       token
     });
   } catch (error) {
-    console.error('Error in loginDriver:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Error in loginDriver:', error.message, error.stack);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 
@@ -91,18 +99,18 @@ exports.getDriverProfile = async (req, res) => {
     }
     res.json(driver);
   } catch (error) {
-    console.error('Error in getDriverProfile:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Error in getDriverProfile:', error.message, error.stack);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 
-// Update availability status (protected)
+// Update driver availability (protected)
 exports.updateAvailability = async (req, res) => {
   try {
     const { isAvailable } = req.body;
 
     if (typeof isAvailable !== 'boolean') {
-      return res.status(400).json({ message: 'isAvailable must be a boolean' });
+      return res.status(400).json({ message: 'isAvailable must be true or false' });
     }
 
     const driver = await Driver.findById(req.user.id);
@@ -113,9 +121,9 @@ exports.updateAvailability = async (req, res) => {
     driver.isAvailable = isAvailable;
     await driver.save();
 
-    res.json({ message: 'Availability updated', isAvailable: driver.isAvailable });
+    res.json({ message: 'Availability updated successfully', isAvailable: driver.isAvailable });
   } catch (error) {
-    console.error('Error in updateAvailability:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Error in updateAvailability:', error.message, error.stack);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };

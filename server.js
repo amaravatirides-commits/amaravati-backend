@@ -1,9 +1,9 @@
 // server.js
-const dotenv = require('dotenv');
+const dotenv = require("dotenv");
 dotenv.config();
 
-const app = require('./app');
-const connectDB = require('./config/db');
+const app = require("./app");
+const connectDB = require("./config/db");
 
 // Connect to MongoDB first, then start server
 connectDB()
@@ -14,6 +14,6 @@ connectDB()
     });
   })
   .catch((error) => {
-    console.error('Failed to connect to MongoDB:', error.message);
+    console.error("Failed to connect to MongoDB:", error.message);
     process.exit(1); // Exit with failure
   });
