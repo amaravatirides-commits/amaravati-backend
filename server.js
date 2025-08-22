@@ -1,4 +1,4 @@
-// Load environment variables first
+// server.js
 const dotenv = require('dotenv');
 dotenv.config();
 
