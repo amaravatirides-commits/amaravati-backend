@@ -1,4 +1,3 @@
-// src/App.jsx
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
@@ -20,38 +19,26 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
 
         {/* Protected routes */}
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <DashboardPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/users"
-          element={
-            <ProtectedRoute>
-              <UsersPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/drivers"
-          element={
-            <ProtectedRoute>
-              <DriversPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/rides"
-          element={
-            <ProtectedRoute>
-              <RidesPage />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/dashboard" element={
+          <ProtectedRoute>
+            <DashboardPage />
+          </ProtectedRoute>
+        }/>
+        <Route path="/users" element={
+          <ProtectedRoute>
+            <UsersPage />
+          </ProtectedRoute>
+        }/>
+        <Route path="/drivers" element={
+          <ProtectedRoute>
+            <DriversPage />
+          </ProtectedRoute>
+        }/>
+        <Route path="/rides" element={
+          <ProtectedRoute>
+            <RidesPage />
+          </ProtectedRoute>
+        }/>
       </Routes>
     </Router>
   );

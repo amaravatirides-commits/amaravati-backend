@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./LoginPage.css"; // make sure this exists
+import "./LoginPage.css"; // Make sure this exists
 
 function LoginPage() {
   const [email, setEmail] = useState("");
@@ -36,11 +36,7 @@ function LoginPage() {
   return (
     <div className="login-container">
       <div className="login-box">
-        <img
-          src="/logo192.png"
-          alt="Logo"
-          className="login-logo"
-        />
+        <img src="/logo192.png" alt="Logo" className="login-logo" />
         <h2>AmaravatiRides Admin Login</h2>
 
         {error && <p className="error">{error}</p>}
