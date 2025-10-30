@@ -10,6 +10,9 @@ const { protectAdmin } = require('../middleware/adminMiddleware');
 // User requests a ride
 router.post('/request', authMiddleware, rideController.requestRide);
 
+// 🚗 Driver fetches all available (requested) rides
+router.get('/available', authMiddleware, rideController.getAvailableRides);
+
 // Driver accepts a ride
 router.patch('/accept/:rideId', authMiddleware, rideController.acceptRide);
 
