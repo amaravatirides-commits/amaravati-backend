@@ -27,6 +27,19 @@ const requestRide = async (req, res) => {
   }
 };
 
+// ✅ NEW: Get all available (requested) rides for drivers
+const getAvailableRides = async (req, res) => {
+  try {
+    const rides = await Ride.find({ status: "requested" })
+      .populate("user", "name email");
+
+    res.json(rides);
+  } catch (error) {
+    console.error("Error in getAvailableRides:", error);
+    res.status(500).json({ message: "Error fetching available rides", error: error.message });
+  }
+};
+
 // Driver accepts ride
 const acceptRide = async (req, res) => {
   try {
@@ -153,8 +166,10 @@ const deleteRideByAdmin = async (req, res) => {
   }
 };
 
+// ================= Exports =================
 module.exports = {
   requestRide,
+  getAvailableRides, // ✅ added here
   acceptRide,
   updateRideStatus,
   getUserRides,
