@@ -27,11 +27,12 @@ const requestRide = async (req, res) => {
   }
 };
 
-// ✅ NEW: Get all available (requested) rides for drivers
+// 🚗 Get all available (requested) rides — for drivers
 const getAvailableRides = async (req, res) => {
   try {
     const rides = await Ride.find({ status: "requested" })
-      .populate("user", "name email");
+      .populate("user", "name email")
+      .sort({ createdAt: -1 });
 
     res.json(rides);
   } catch (error) {
@@ -108,7 +109,6 @@ const getDriverRides = async (req, res) => {
 
 // ================= Admin =================
 
-// Get all rides
 const getAllRides = async (req, res) => {
   try {
     const rides = await Ride.find()
@@ -121,7 +121,6 @@ const getAllRides = async (req, res) => {
   }
 };
 
-// Get ride by ID
 const getRideById = async (req, res) => {
   try {
     const ride = await Ride.findById(req.params.rideId)
@@ -137,7 +136,6 @@ const getRideById = async (req, res) => {
   }
 };
 
-// Update ride by admin
 const updateRideByAdmin = async (req, res) => {
   try {
     const ride = await Ride.findByIdAndUpdate(req.params.rideId, req.body, { new: true })
@@ -153,7 +151,6 @@ const updateRideByAdmin = async (req, res) => {
   }
 };
 
-// Delete ride
 const deleteRideByAdmin = async (req, res) => {
   try {
     const ride = await Ride.findByIdAndDelete(req.params.rideId);
@@ -166,10 +163,9 @@ const deleteRideByAdmin = async (req, res) => {
   }
 };
 
-// ================= Exports =================
 module.exports = {
   requestRide,
-  getAvailableRides, // ✅ added here
+  getAvailableRides, // ✅ added
   acceptRide,
   updateRideStatus,
   getUserRides,
