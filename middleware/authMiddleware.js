@@ -2,12 +2,11 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User'); 
 const Driver = require('../models/Driver');
-const Admin = require('../models/Admin'); // Corrected import path
+const Admin = require('../models/Admin');
 
 const authMiddleware = async (req, res, next) => {
   let token;
 
-  // Expect token in header: Authorization: Bearer <token>
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
     try {
       token = req.headers.authorization.split(' ')[1];
@@ -39,14 +38,21 @@ const authMiddleware = async (req, res, next) => {
         return next();
       }
 
-      // If no matching user found
+      // No matching user found
       return res.status(401).json({ message: 'User not found' });
+
     } catch (error) {
+      // ✅ Handle expired token separately
+      if (error.name === 'TokenExpiredError') {
+        console.warn('⚠️ JWT expired:', error.expiredAt);
+        return res.status(401).json({ message: 'Token expired' });
+      }
+
+      // Log unexpected errors
       console.error('Auth Middleware error:', error);
       return res.status(401).json({ message: 'Token is not valid' });
     }
   } else {
-    // If token missing
     return res.status(401).json({ message: 'No token, authorization denied' });
   }
 };
