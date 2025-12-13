@@ -1,4 +1,3 @@
-// models/User.js
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema(
@@ -19,11 +18,16 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    role: {
+      type: String,
+      enum: ["user"],
+      default: "user"   // 👈 REQUIRED
+    }
   },
   { timestamps: true }
 );
 
-// Prevent OverwriteModelError on hot reload / multiple imports
+// Prevent OverwriteModelError
 const User = mongoose.models.User || mongoose.model('User', userSchema);
 
 module.exports = User;
