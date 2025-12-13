@@ -21,19 +21,18 @@ const requestRide = async (req, res) => {
 
     res.status(201).json({ message: "Ride requested successfully", ride });
   } catch (err) {
-    console.error("Error in requestRide:", err);
     res.status(500).json({ message: "Error requesting ride" });
   }
 };
 
 /* ================= DRIVER ================= */
 
-// Get available rides
+// Get available rides (ONLY VALID ONES)
 const getAvailableRides = async (req, res) => {
   try {
     const rides = await Ride.find({
       status: "requested",
-      user: { $ne: null },
+      user: { $ne: null },     // 🔥 FIX
       pickup: { $exists: true },
       dropoff: { $exists: true },
     })
@@ -42,23 +41,25 @@ const getAvailableRides = async (req, res) => {
 
     res.json(rides);
   } catch (err) {
-    console.error("Error in getAvailableRides:", err);
     res.status(500).json({ message: "Error fetching available rides" });
   }
 };
 
-// Accept a ride
+// Accept ride
 const acceptRide = async (req, res) => {
   try {
     const ride = await Ride.findById(req.params.rideId);
-    if (!ride) return res.status(404).json({ message: "Ride not found" });
+
+    if (!ride) {
+      return res.status(404).json({ message: "Ride not found" });
+    }
 
     if (!ride.user || !ride.dropoff) {
       return res.status(400).json({ message: "Invalid ride data" });
     }
 
     if (ride.status !== "requested") {
-      return res.status(400).json({ message: "Ride already accepted or in progress" });
+      return res.status(400).json({ message: "Ride already accepted" });
     }
 
     ride.driver = req.user._id;
@@ -67,7 +68,6 @@ const acceptRide = async (req, res) => {
 
     res.json({ message: "Ride accepted successfully", ride });
   } catch (err) {
-    console.error("Error in acceptRide:", err);
     res.status(500).json({ message: "Error accepting ride" });
   }
 };
@@ -77,7 +77,10 @@ const updateRideStatus = async (req, res) => {
   try {
     const { status } = req.body;
     const allowed = ["in-progress", "completed", "cancelled"];
-    if (!allowed.includes(status)) return res.status(400).json({ message: "Invalid ride status" });
+
+    if (!allowed.includes(status)) {
+      return res.status(400).json({ message: "Invalid ride status" });
+    }
 
     const ride = await Ride.findById(req.params.rideId);
     if (!ride) return res.status(404).json({ message: "Ride not found" });
@@ -87,29 +90,28 @@ const updateRideStatus = async (req, res) => {
 
     res.json({ message: "Ride status updated", ride });
   } catch (err) {
-    console.error("Error in updateRideStatus:", err);
     res.status(500).json({ message: "Error updating status" });
   }
 };
 
-// Get driver ride history
+// Driver history
 const getDriverRides = async (req, res) => {
   try {
-    const rides = await Ride.find({ driver: req.user._id }).populate("user", "name email");
+    const rides = await Ride.find({ driver: req.user._id })
+      .populate("user", "name email");
     res.json(rides);
   } catch (err) {
-    console.error("Error in getDriverRides:", err);
     res.status(500).json({ message: "Error fetching driver rides" });
   }
 };
 
-// Get user ride history
+// User history
 const getUserRides = async (req, res) => {
   try {
-    const rides = await Ride.find({ user: req.user._id }).populate("driver", "name email");
+    const rides = await Ride.find({ user: req.user._id })
+      .populate("driver", "name email");
     res.json(rides);
   } catch (err) {
-    console.error("Error in getUserRides:", err);
     res.status(500).json({ message: "Error fetching user rides" });
   }
 };
@@ -117,52 +119,37 @@ const getUserRides = async (req, res) => {
 /* ================= ADMIN ================= */
 
 const getAllRides = async (req, res) => {
-  try {
-    const rides = await Ride.find()
-      .populate("user", "name email")
-      .populate("driver", "name email");
-    res.json(rides);
-  } catch (err) {
-    console.error("Error in getAllRides:", err);
-    res.status(500).json({ message: "Error fetching rides" });
-  }
+  const rides = await Ride.find()
+    .populate("user", "name email")
+    .populate("driver", "name email");
+  res.json(rides);
 };
 
 const getRideById = async (req, res) => {
-  try {
-    const ride = await Ride.findById(req.params.rideId)
-      .populate("user", "name email")
-      .populate("driver", "name email");
-    if (!ride) return res.status(404).json({ message: "Ride not found" });
-    res.json(ride);
-  } catch (err) {
-    console.error("Error in getRideById:", err);
-    res.status(500).json({ message: "Error fetching ride" });
-  }
+  const ride = await Ride.findById(req.params.rideId)
+    .populate("user", "name email")
+    .populate("driver", "name email");
+
+  if (!ride) return res.status(404).json({ message: "Ride not found" });
+  res.json(ride);
 };
 
 const updateRideByAdmin = async (req, res) => {
-  try {
-    const ride = await Ride.findByIdAndUpdate(req.params.rideId, req.body, { new: true })
-      .populate("user", "name email")
-      .populate("driver", "name email");
-    if (!ride) return res.status(404).json({ message: "Ride not found" });
-    res.json({ message: "Ride updated", ride });
-  } catch (err) {
-    console.error("Error in updateRideByAdmin:", err);
-    res.status(500).json({ message: "Error updating ride" });
-  }
+  const ride = await Ride.findByIdAndUpdate(
+    req.params.rideId,
+    req.body,
+    { new: true }
+  )
+    .populate("user", "name email")
+    .populate("driver", "name email");
+
+  if (!ride) return res.status(404).json({ message: "Ride not found" });
+  res.json({ message: "Ride updated", ride });
 };
 
 const deleteRideByAdmin = async (req, res) => {
-  try {
-    const ride = await Ride.findByIdAndDelete(req.params.rideId);
-    if (!ride) return res.status(404).json({ message: "Ride not found" });
-    res.json({ message: "Ride deleted" });
-  } catch (err) {
-    console.error("Error in deleteRideByAdmin:", err);
-    res.status(500).json({ message: "Error deleting ride" });
-  }
+  await Ride.findByIdAndDelete(req.params.rideId);
+  res.json({ message: "Ride deleted" });
 };
 
 module.exports = {
