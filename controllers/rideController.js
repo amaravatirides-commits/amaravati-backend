@@ -1,9 +1,9 @@
 // controllers/rideController.js
-const Ride = require('../models/Ride');
+const Ride = require("../models/Ride");
 
-// ================= User & Driver =================
+/* ================= USER ================= */
 
-// Request a ride (User)
+// Request a ride
 const requestRide = async (req, res) => {
   try {
     const { pickup, dropoff } = req.body;
@@ -12,62 +12,77 @@ const requestRide = async (req, res) => {
       return res.status(400).json({ message: "Pickup and dropoff are required" });
     }
 
-    const ride = new Ride({
-      user: req.user._id,
+    const ride = await Ride.create({
+      user: req.user._id,   // from userAuth middleware
       pickup,
       dropoff,
-      status: "requested"
+      status: "requested",
     });
 
-    await ride.save();
     res.status(201).json({ message: "Ride requested successfully", ride });
-  } catch (error) {
-    console.error("Error in requestRide:", error);
-    res.status(500).json({ message: "Error requesting ride", error: error.message });
+  } catch (err) {
+    console.error("REQUEST RIDE ERROR:", err);
+    res.status(500).json({ message: "Error requesting ride" });
   }
 };
 
-// ✅ NEW: Get all available (requested) rides for drivers
+/* ================= DRIVER ================= */
+
+// Get available rides
 const getAvailableRides = async (req, res) => {
   try {
-    const rides = await Ride.find({ status: "requested" })
-      .populate("user", "name email");
+    const rides = await Ride.find({
+      status: "requested",
+      user: { $ne: null },
+      pickup: { $exists: true },
+      dropoff: { $exists: true },
+    })
+      .populate("user", "name email")
+      .sort({ createdAt: -1 });
 
     res.json(rides);
-  } catch (error) {
-    console.error("Error in getAvailableRides:", error);
-    res.status(500).json({ message: "Error fetching available rides", error: error.message });
+  } catch (err) {
+    console.error("GET AVAILABLE RIDES ERROR:", err);
+    res.status(500).json({ message: "Error fetching available rides" });
   }
 };
 
-// Driver accepts ride
+// Accept ride (FIXED)
 const acceptRide = async (req, res) => {
   try {
     const ride = await Ride.findById(req.params.rideId);
-    if (!ride) return res.status(404).json({ message: "Ride not found" });
 
-    if (ride.status !== "requested") {
-      return res.status(400).json({ message: "Ride already accepted or completed" });
+    if (!ride) {
+      return res.status(404).json({ message: "Ride not found" });
     }
 
-    ride.driver = req.user._id;
+    if (!ride.user || !ride.dropoff) {
+      return res.status(400).json({ message: "Invalid ride data" });
+    }
+
+    if (ride.status !== "requested") {
+      return res.status(400).json({ message: "Ride already accepted" });
+    }
+
+    // ✅ Use driver id from driverAuth middleware
+    ride.driver = req.driver._id;
     ride.status = "accepted";
     await ride.save();
 
     res.json({ message: "Ride accepted successfully", ride });
-  } catch (error) {
-    console.error("Error in acceptRide:", error);
-    res.status(500).json({ message: "Error accepting ride", error: error.message });
+  } catch (err) {
+    console.error("ACCEPT RIDE ERROR:", err);
+    res.status(500).json({ message: "Error accepting ride" });
   }
 };
 
-// Update ride status (Driver)
+// Update ride status
 const updateRideStatus = async (req, res) => {
   try {
     const { status } = req.body;
-    const validStatuses = ["accepted", "in-progress", "completed", "cancelled"];
+    const allowed = ["started", "completed", "cancelled"];
 
-    if (!validStatuses.includes(status)) {
+    if (!allowed.includes(status)) {
       return res.status(400).json({ message: "Invalid ride status" });
     }
 
@@ -78,46 +93,54 @@ const updateRideStatus = async (req, res) => {
     await ride.save();
 
     res.json({ message: "Ride status updated", ride });
-  } catch (error) {
-    console.error("Error in updateRideStatus:", error);
-    res.status(500).json({ message: "Error updating status", error: error.message });
+  } catch (err) {
+    console.error("UPDATE RIDE STATUS ERROR:", err);
+    res.status(500).json({ message: "Error updating status" });
   }
 };
 
-// User ride history
-const getUserRides = async (req, res) => {
-  try {
-    const rides = await Ride.find({ user: req.user._id }).populate("driver", "name email");
-    res.json(rides);
-  } catch (error) {
-    console.error("Error in getUserRides:", error);
-    res.status(500).json({ message: "Error fetching user rides", error: error.message });
-  }
-};
-
-// Driver ride history
+// Get driver rides (history)
 const getDriverRides = async (req, res) => {
   try {
-    const rides = await Ride.find({ driver: req.user._id }).populate("user", "name email");
+    const rides = await Ride.find({ driver: req.driver._id })
+      .populate("user", "name email")
+      .sort({ createdAt: -1 });
+
     res.json(rides);
-  } catch (error) {
-    console.error("Error in getDriverRides:", error);
-    res.status(500).json({ message: "Error fetching driver rides", error: error.message });
+  } catch (err) {
+    console.error("GET DRIVER RIDES ERROR:", err);
+    res.status(500).json({ message: "Error fetching driver rides" });
   }
 };
 
-// ================= Admin =================
+// Get user rides (history)
+const getUserRides = async (req, res) => {
+  try {
+    const rides = await Ride.find({ user: req.user._id })
+      .populate("driver", "name email")
+      .sort({ createdAt: -1 });
+
+    res.json(rides);
+  } catch (err) {
+    console.error("GET USER RIDES ERROR:", err);
+    res.status(500).json({ message: "Error fetching user rides" });
+  }
+};
+
+/* ================= ADMIN ================= */
 
 // Get all rides
 const getAllRides = async (req, res) => {
   try {
     const rides = await Ride.find()
       .populate("user", "name email")
-      .populate("driver", "name email");
+      .populate("driver", "name email")
+      .sort({ createdAt: -1 });
+
     res.json(rides);
-  } catch (error) {
-    console.error("Error in getAllRides:", error);
-    res.status(500).json({ message: "Error fetching rides", error: error.message });
+  } catch (err) {
+    console.error("GET ALL RIDES ERROR:", err);
+    res.status(500).json({ message: "Error fetching all rides" });
   }
 };
 
@@ -131,9 +154,9 @@ const getRideById = async (req, res) => {
     if (!ride) return res.status(404).json({ message: "Ride not found" });
 
     res.json(ride);
-  } catch (error) {
-    console.error("Error in getRideById:", error);
-    res.status(500).json({ message: "Error fetching ride", error: error.message });
+  } catch (err) {
+    console.error("GET RIDE BY ID ERROR:", err);
+    res.status(500).json({ message: "Error fetching ride" });
   }
 };
 
@@ -146,34 +169,31 @@ const updateRideByAdmin = async (req, res) => {
 
     if (!ride) return res.status(404).json({ message: "Ride not found" });
 
-    res.json({ message: "Ride updated successfully", ride });
-  } catch (error) {
-    console.error("Error in updateRideByAdmin:", error);
-    res.status(500).json({ message: "Error updating ride", error: error.message });
+    res.json({ message: "Ride updated", ride });
+  } catch (err) {
+    console.error("UPDATE RIDE BY ADMIN ERROR:", err);
+    res.status(500).json({ message: "Error updating ride" });
   }
 };
 
-// Delete ride
+// Delete ride by admin
 const deleteRideByAdmin = async (req, res) => {
   try {
-    const ride = await Ride.findByIdAndDelete(req.params.rideId);
-    if (!ride) return res.status(404).json({ message: "Ride not found" });
-
-    res.json({ message: "Ride deleted successfully" });
-  } catch (error) {
-    console.error("Error in deleteRideByAdmin:", error);
-    res.status(500).json({ message: "Error deleting ride", error: error.message });
+    await Ride.findByIdAndDelete(req.params.rideId);
+    res.json({ message: "Ride deleted" });
+  } catch (err) {
+    console.error("DELETE RIDE BY ADMIN ERROR:", err);
+    res.status(500).json({ message: "Error deleting ride" });
   }
 };
 
-// ================= Exports =================
 module.exports = {
   requestRide,
-  getAvailableRides, // ✅ added here
+  getAvailableRides,
   acceptRide,
   updateRideStatus,
-  getUserRides,
   getDriverRides,
+  getUserRides,
   getAllRides,
   getRideById,
   updateRideByAdmin,
